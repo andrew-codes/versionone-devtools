@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "name": "@andrew-codes/volt",
+  "workspaces": [
+    "volt-vsc-extension"
+  ],
+  "scripts": {
+    "test": "lerna run test"
+  },
+  "dependencies": {
+    "lerna": "^3.0.0-rc.0"
+  }
+}
