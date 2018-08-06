@@ -14,14 +14,14 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:extension.setAccessToken"
+    "onCommand:extension.setup"
   ],
   "main": "./extension",
   "contributes": {
     "commands": [
       {
-        "command": "extension.setAccessToken",
-        "title": "volt: Set V1 access token"
+        "command": "extension.setup",
+        "title": "volt: Setup Volt"
       }
     ]
   },
@@ -37,6 +37,11 @@
     "vscode": "^1.1.6"
   },
   "dependencies": {
+    "axios": "^0.18.0",
+    "redux": "^4.0.0",
+    "redux-actions": "^2.6.1",
+    "underscore": "^1.9.1",
+    "v1sdk": "^2.3.0",
     "vscode-cache": "^0.3.0"
   }
 }
