@@ -4323,6 +4323,10 @@ vinyl@^2.0.1, vinyl@^2.0.2:
     remove-trailing-separator "^1.0.1"
     replace-ext "^1.0.0"
 
+vscode-cache@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/vscode-cache/-/vscode-cache-0.3.0.tgz#7cc39664ebd99d370303068b89bc4c95614667c0"
+
 vscode@^1.1.6:
   version "1.1.18"
   resolved "https://registry.yarnpkg.com/vscode/-/vscode-1.1.18.tgz#e9227265dc72fc826bd6cd7bd21193f4e48fa671"
