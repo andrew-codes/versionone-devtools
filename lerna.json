@@ -1,7 +1,5 @@
 {
-  "packages": [
-    "volt-vsc-extension"
-  ],
+  "packages": ["volt-vsc-extension"],
   "npmClient": "yarn",
   "useWorkspaces": true,
   "version": "0.0.0"
