@@ -14,14 +14,29 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:extension.setup"
+    "onCommand:extension.changeTeam",
+    "onCommand:extension.reset",
+    "onCommand:extension.setup",
+    "onCommand:extension.startPrimaryWorkitem"
   ],
   "main": "./extension",
   "contributes": {
     "commands": [
       {
+        "command": "extension.changeTeam",
+        "title": "volt: Change Team"
+      },
+      {
+        "command": "extension.reset",
+        "title": "volt: Reset"
+      },
+      {
         "command": "extension.setup",
         "title": "volt: Setup Volt"
+      },
+      {
+        "command": "extension.startPrimaryWorkitem",
+        "title": "volt: Start a Story or Defect"
       }
     ]
   },
@@ -40,6 +55,7 @@
     "axios": "^0.18.0",
     "redux": "^4.0.0",
     "redux-actions": "^2.6.1",
+    "redux-logger": "^3.0.6",
     "redux-saga": "^0.16.0",
     "underscore": "^1.9.1",
     "v1sdk": "^2.3.0",

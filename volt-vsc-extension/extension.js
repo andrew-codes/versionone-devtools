@@ -1,7 +1,12 @@
 const vscode = require("vscode");
 const createStore = require("./state/createStore");
 const createV1Api = require("./api");
-const { getAccessToken } = require("./state/domains/v1/selectors");
+const {
+  getAccessToken,
+  getTeamPrimaryWorkitems,
+  getTeams
+} = require("./state/domains/v1/selectors");
+const { actionCreators } = require("./state/domains/v1/actions");
 
 let store;
 function activate(context) {
@@ -11,72 +16,102 @@ function activate(context) {
     vscode.window.showInformationMessage("Please setup the Volt extension.");
   }
 
-  let disposable = vscode.commands.registerCommand(
+  const setupCommand = vscode.commands.registerCommand(
     "extension.setup",
     function() {
       let v1Api;
-      vscode.window
+      return vscode.window
         .showInputBox({
           password: true,
           prompt: "Please enter your VersionOne access token",
           validateInput: value => (!value ? "Access token is required" : null)
         })
         .then(token => {
-          store.dispatch({
-            type: "v1/setAccessToken",
-            payload: { token }
-          });
+          store.dispatch(actionCreators.setAccessToken({ token }));
         })
-        // .then(() => {
-        //   return vscode.window
-        //     .showInputBox({
-        //       prompt: "Please enter your VersionOne user name",
-        //       validateInput: value => (!value ? "Username is required" : null)
-        //     })
-        //     .then(username => {
-        //       store.dispatch({
-        //         type: "v1/setUsername",
-        //         payload: { username }
-        //       });
-        //     });
-        // })
         .then(() => {
           const state = store.getState();
           v1Api = createV1Api(getAccessToken(state));
           return v1Api
             .query({
-              from: "TeamRoom",
-              select: ["Name"]
+              from: "Team",
+              select: ["Name"],
+              where: {
+                "Workitems.Owners": "Member:1039"
+              }
             })
             .then(response => response.data[0])
-            .then(teams => {
-              store.dispatch({
-                type: "v1/setTeams",
-                payload: { teams }
-              });
+            .then(data => {
+              store.dispatch(actionCreators.setTeams({ teams: data }));
+              const state = store.getState();
+              const teams = getTeams(state);
               const quickPickTeams = teams.map(team => ({
-                label: team.Name
+                label: team.name
               }));
               return vscode.window.showQuickPick(quickPickTeams, {
                 canPickMany: false,
                 placeHolder: "Please select your team room",
                 onDidSelectItem: selectedTeam => {
-                  store.dispatch({
-                    type: "v1/setCurrentTeam",
-                    payload: { teamName: selectedTeam.label }
-                  });
+                  const team = teams.find(t => t.name === selectedTeam.label);
+                  store.dispatch(actionCreators.setCurrentTeam({ team }));
                 }
               });
             });
         });
     }
   );
+  context.subscriptions.push(setupCommand);
 
-  context.subscriptions.push(disposable);
+  const resetCommand = vscode.commands.registerCommand(
+    "extension.reset",
+    function() {
+      store.dispatch(actionCreators.reset());
+    }
+  );
+  context.subscriptions.push(setupCommand);
+
+  const changeTeam = vscode.commands.registerCommand(
+    "extension.changeTeam",
+    function() {
+      const state = store.getState();
+      const teams = getTeams(state);
+      const quickPickTeams = teams.map(team => ({
+        label: team.name
+      }));
+      return vscode.window.showQuickPick(quickPickTeams, {
+        canPickMany: false,
+        placeHolder: "Please select your team room",
+        onDidSelectItem: selectedTeam => {
+          const team = teams.find(t => t.name === selectedTeam.label);
+          store.dispatch(actionCreators.setCurrentTeam({ team }));
+        }
+      });
+    }
+  );
+  context.subscriptions.push(changeTeam);
+
+  const startPrimaryWorkitemCommand = vscode.commands.registerCommand(
+    "extension.startPrimaryWorkitem",
+    function() {
+      const state = store.getState();
+      const pwis = getTeamPrimaryWorkitems(state);
+      const quickPickItems = pwis.map(pwi => ({
+        label: pwi.name,
+        detail: pwi.description,
+        description: pwi.number
+      }));
+      return vscode.window.showQuickPick(quickPickItems, {
+        canPickMany: false,
+        placeHolder: "Please select your team room",
+        onDidSelectItem: selectedItem => {
+          console.log(selectedItem, arguments, "here here");
+        }
+      });
+    }
+  );
+  context.subscriptions.push(startPrimaryWorkitemCommand);
 }
 exports.activate = activate;
 
-function deactivate() {
-  cache.put("state", store.getState());
-}
+function deactivate() {}
 exports.deactivate = deactivate;
