@@ -1,6 +1,12 @@
 const { indexBy, isDate, isObject } = require("underscore");
 const { handleActions } = require("redux-actions");
 const { actions } = require("./actions");
+
+const defaultState = {
+  members: {},
+  teams: {}
+};
+
 const reducer = handleActions(
   {
     [actions.setAccessToken]: (state, { payload: { token } }) =>
@@ -20,17 +26,29 @@ const reducer = handleActions(
           state.teams,
           indexBy(normalize(teams), "oidToken")
         )
-      })
+      }),
+    [actions.setMyDetails]: (state, { payload: { member } }) => {
+      const myself = normalize(member);
+      return Object.assign({}, state, {
+        myself: myself.oidToken,
+        members: Object.assign({}, state.members, indexBy([myself], "oidToken"))
+      });
+    }
   },
-  {}
+  defaultState
 );
 
 module.exports = { v1: reducer };
 
-function normalize(items) {
-  return items
-    .map(item => toLowerCaseProperties(item))
-    .map(item => Object.assign(item, { oidToken: item._oid }));
+function normalize(value) {
+  if (Array.isArray(value)) {
+    return value
+      .map(item => toLowerCaseProperties(item))
+      .map(item => Object.assign(item, { oidToken: item._oid }));
+  }
+  return Object.assign({}, toLowerCaseProperties(value), {
+    oidToken: value._oid
+  });
 }
 function toLowerCaseProperties(item) {
   if (!isObject(item)) return item;

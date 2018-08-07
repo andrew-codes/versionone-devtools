@@ -1,14 +1,13 @@
 const vscode = require("vscode");
-const axios = require("axios");
-const sdk = require("v1sdk");
 const createStore = require("./state/createStore");
-const connector = sdk.axiosConnector(axios)(sdk.default);
-const createV1Api = connector("localhost", "VersionOne.Web", 80, false);
+const createV1Api = require("./api");
+const { getAccessToken } = require("./state/domains/v1/selectors");
 
+let store;
 function activate(context) {
-  const store = createStore(context);
+  store = createStore(context);
 
-  if (!store.getState().accessToken) {
+  if (!getAccessToken(store.getState())) {
     vscode.window.showInformationMessage("Please setup the Volt extension.");
   }
 
@@ -28,22 +27,22 @@ function activate(context) {
             payload: { token }
           });
         })
-        .then(() => {
-          return vscode.window
-            .showInputBox({
-              prompt: "Please enter your VersionOne user name",
-              validateInput: value => (!value ? "Username is required" : null)
-            })
-            .then(username => {
-              store.dispatch({
-                type: "v1/setUsername",
-                payload: { username }
-              });
-            });
-        })
+        // .then(() => {
+        //   return vscode.window
+        //     .showInputBox({
+        //       prompt: "Please enter your VersionOne user name",
+        //       validateInput: value => (!value ? "Username is required" : null)
+        //     })
+        //     .then(username => {
+        //       store.dispatch({
+        //         type: "v1/setUsername",
+        //         payload: { username }
+        //       });
+        //     });
+        // })
         .then(() => {
           const state = store.getState();
-          v1Api = createV1Api.withAccessToken(state.v1.accessToken);
+          v1Api = createV1Api(getAccessToken(state));
           return v1Api
             .query({
               from: "TeamRoom",
@@ -77,6 +76,7 @@ function activate(context) {
 }
 exports.activate = activate;
 
-// this method is called when your extension is deactivated
-function deactivate() {}
+function deactivate() {
+  cache.put("state", store.getState());
+}
 exports.deactivate = deactivate;

@@ -1,7 +1,10 @@
 const Cache = require("vscode-cache");
-const { createStore } = require("redux");
-const createReducer = require("./createReducer");
+const createSagaMiddleware = require("redux-saga");
+const { applyMiddleware, createStore } = require("redux");
 const reducer = require("./reducer");
+const sagas = require("./sagas");
+
+const sagaMiddleware = createSagaMiddleware.default();
 
 module.exports = function(context) {
   const cache = new Cache(context, "volt");
@@ -9,8 +12,14 @@ module.exports = function(context) {
   const initialState = cache.getAll().state;
   const startState = initialState || defaultState;
 
-  const store = createStore(createReducer(startState, reducer));
-  store.subscribe(() => cache.put("state", store.getState()));
+  const store = createStore(
+    reducer,
+    startState,
+    applyMiddleware(sagaMiddleware)
+  );
+  sagaMiddleware.run(sagas);
+
+  store.subscribe(() => console.log(store.getState()));
 
   return store;
 };
