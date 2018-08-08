@@ -4,10 +4,11 @@ const { createAction } = require("redux-actions");
 const actions = createActionNames("v1", [
   "reset",
   "setAccessToken",
-  "setCurrentTeam",
+  "setCurrentTeamRoom",
   "setMyDetails",
   "setPrimaryWorkitems",
-  "setTeams",
+  "setStatuses",
+  "setTeamRooms",
   "setUsername"
 ]);
 
@@ -15,9 +16,10 @@ module.exports.actions = actions;
 module.exports.actionCreators = {
   reset: createAction(actions.reset),
   setAccessToken: createAction(actions.setAccessToken),
-  setCurrentTeam: createAction(actions.setCurrentTeam),
+  setCurrentTeamRoom: createAction(actions.setCurrentTeamRoom),
   setMyDetails: createAction(actions.setMyDetails),
   setPrimaryWorkitems: createAction(actions.setPrimaryWorkitems),
-  setTeams: createAction(actions.setTeams),
+  setStatuses: createAction(actions.setStatuses),
+  setTeamRooms: createAction(actions.setTeamRooms),
   setUsername: createAction(actions.setUsername)
 };

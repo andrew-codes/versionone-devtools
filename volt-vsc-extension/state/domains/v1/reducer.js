@@ -6,7 +6,7 @@ const { compose, indexBy, isDate, isObject, partial } = _;
 const defaultState = {
   members: {},
   primaryWorkitems: {},
-  teams: {}
+  teamRooms: {}
 };
 
 const reducer = handleActions(
@@ -16,9 +16,9 @@ const reducer = handleActions(
       Object.assign({}, state, {
         accessToken: token
       }),
-    [actions.setCurrentTeam]: (state, { payload: { team } }) =>
+    [actions.setCurrentTeamRoom]: (state, { payload: { teamRoom } }) =>
       Object.assign({}, state, {
-        currentTeam: team._oid
+        currentTeam: teamRoom._oid
       }),
     [actions.setMyDetails]: (state, { payload: { member } }) => {
       const myself = normalize(member);
@@ -55,9 +55,13 @@ const reducer = handleActions(
         primaryWorkitemOrder: pwis.map(pwi => pwi._oid)
       });
     },
-    [actions.setTeams]: (state, { payload: { teams } }) =>
+    [actions.setStatuses]: (state, { payload: { statuses } }) =>
       Object.assign({}, state, {
-        teams: Object.assign({}, state.teams, indexBy(normalize(teams), "_oid"))
+        statuses: indexBy(normalize(statuses), "_oid")
+      }),
+    [actions.setTeamRooms]: (state, { payload: { teamRooms } }) =>
+      Object.assign({}, state, {
+        teamRooms: indexBy(normalize(teamRooms), "_oid")
       })
   },
   defaultState

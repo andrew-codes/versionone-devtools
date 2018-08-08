@@ -14,7 +14,7 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:extension.changeTeam",
+    "onCommand:extension.changeTeamRoom",
     "onCommand:extension.reset",
     "onCommand:extension.setup",
     "onCommand:extension.startPrimaryWorkitem"
@@ -23,8 +23,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "extension.changeTeam",
-        "title": "volt: Change Team"
+        "command": "extension.changeTeamRoom",
+        "title": "volt: Change TeamRoom"
       },
       {
         "command": "extension.reset",
@@ -57,6 +57,7 @@
     "redux-actions": "^2.6.1",
     "redux-logger": "^3.0.6",
     "redux-saga": "^0.16.0",
+    "reselect": "^3.0.1",
     "underscore": "^1.9.1",
     "v1sdk": "^2.3.0",
     "vscode-cache": "^0.3.0"

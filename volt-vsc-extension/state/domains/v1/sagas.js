@@ -1,18 +1,31 @@
 const { call, put, select, takeEvery } = require("redux-saga/effects");
 const createV1Api = require("../../../api");
 const { actions, actionCreators } = require("./actions");
-const { getAccessToken } = require("./selectors");
+const {
+  getAccessToken,
+  getCurrentTeamRoom,
+  getFutureStatus
+} = require("./selectors");
 
 module.exports = [
-  () => takeEvery(actions.setCurrentTeam, fetchPrimaryWorkitemsForTeam),
+  () => takeEvery(actions.setCurrentTeamRoom, fetchPrimaryWorkitemsForTeamRoom),
   () => takeEvery(actions.setAccessToken, setMyMemberData)
 ];
 
-function* fetchPrimaryWorkitemsForTeam({ payload: { team } }) {
+function* fetchPrimaryWorkitemsForTeamRoom({ payload: { teamRoom } }) {
   try {
     const accessToken = yield select(getAccessToken);
     const api = createV1Api(accessToken);
-    const { data } = yield call(api.query, {
+    const statuses = yield call(api.query, {
+      from: "Status",
+      select: ["AssetType", "Description", "Name", "Order", "RollupState"],
+      where: {
+        "Team.Rooms": teamRoom._oid
+      }
+    });
+    yield put(actionCreators.setStatuses({ statuses: statuses.data[0] }));
+    const futureStatus = yield select(getFutureStatus);
+    const pwis = yield call(api.query, {
       from: "PrimaryWorkitem",
       select: [
         "AssetType",
@@ -23,6 +36,7 @@ function* fetchPrimaryWorkitemsForTeam({ payload: { team } }) {
         "Priority",
         "Scope",
         "Status",
+        "Status.Name",
         "Children",
         "Children.Number",
         "Children.Name",
@@ -30,10 +44,12 @@ function* fetchPrimaryWorkitemsForTeam({ payload: { team } }) {
         "Children.AssetType"
       ],
       where: {
-        Team: team._oid
+        "Team.Rooms": teamRoom._oid,
+        Status: futureStatus._oid,
+        AssetState: "Active"
       }
     });
-    yield put(actionCreators.setPrimaryWorkitems({ items: data[0] }));
+    yield put(actionCreators.setPrimaryWorkitems({ items: pwis.data[0] }));
   } catch (e) {
     console.error(e);
   }

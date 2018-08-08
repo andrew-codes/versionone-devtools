@@ -22,7 +22,7 @@ module.exports = function(context) {
   sagaMiddleware.run(sagas);
 
   store.subscribe(() => cache.put("state", store.getState()));
-  store.subscribe(() => console.log("Updated State", store.getState()));
+  store.subscribe(() => console.log(store.getState()));
 
   return store;
 };

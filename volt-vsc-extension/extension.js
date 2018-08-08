@@ -3,16 +3,20 @@ const createStore = require("./state/createStore");
 const createV1Api = require("./api");
 const {
   getAccessToken,
-  getTeamPrimaryWorkitems,
-  getTeams
+  getFuturePrimaryWorkItems,
+  getMyself,
+  getTeamRooms
 } = require("./state/domains/v1/selectors");
 const { actionCreators } = require("./state/domains/v1/actions");
 
 let store;
 function activate(context) {
   store = createStore(context);
+  const initialState = store.getState();
 
-  if (!getAccessToken(store.getState())) {
+  console.log("initial state", initialState);
+
+  if (!getAccessToken(initialState)) {
     vscode.window.showInformationMessage("Please setup the Volt extension.");
   }
 
@@ -31,31 +35,38 @@ function activate(context) {
         })
         .then(() => {
           const state = store.getState();
+          const myself = getMyself(state);
           v1Api = createV1Api(getAccessToken(state));
           return v1Api
             .query({
-              from: "Team",
+              from: "TeamRoom",
               select: ["Name"],
               where: {
-                "Workitems.Owners": "Member:1039"
+                Participants: myself._oid
               }
             })
             .then(response => response.data[0])
             .then(data => {
-              store.dispatch(actionCreators.setTeams({ teams: data }));
+              store.dispatch(actionCreators.setTeamRooms({ teamRooms: data }));
               const state = store.getState();
-              const teams = getTeams(state);
-              const quickPickTeams = teams.map(team => ({
+              const teamRooms = getTeamRooms(state);
+              const quickPickTeams = teamRooms.map(team => ({
                 label: team.name
               }));
-              return vscode.window.showQuickPick(quickPickTeams, {
-                canPickMany: false,
-                placeHolder: "Please select your team room",
-                onDidSelectItem: selectedTeam => {
-                  const team = teams.find(t => t.name === selectedTeam.label);
-                  store.dispatch(actionCreators.setCurrentTeam({ team }));
-                }
-              });
+              return vscode.window
+                .showQuickPick(quickPickTeams, {
+                  canPickMany: false,
+                  placeHolder: "Please select your team room"
+                })
+                .then(selectedItem => {
+                  if (!selectedItem) return;
+                  const teamRoom = teamRooms.find(
+                    t => t.name === selectedItem.label
+                  );
+                  store.dispatch(
+                    actionCreators.setCurrentTeamRoom({ teamRoom })
+                  );
+                });
             });
         });
     }
@@ -71,21 +82,23 @@ function activate(context) {
   context.subscriptions.push(setupCommand);
 
   const changeTeam = vscode.commands.registerCommand(
-    "extension.changeTeam",
+    "extension.changeTeamRoom",
     function() {
       const state = store.getState();
-      const teams = getTeams(state);
-      const quickPickTeams = teams.map(team => ({
+      const teamRooms = getTeamRooms(state);
+      const quickPickTeams = teamRooms.map(team => ({
         label: team.name
       }));
-      return vscode.window.showQuickPick(quickPickTeams, {
-        canPickMany: false,
-        placeHolder: "Please select your team room",
-        onDidSelectItem: selectedTeam => {
-          const team = teams.find(t => t.name === selectedTeam.label);
-          store.dispatch(actionCreators.setCurrentTeam({ team }));
-        }
-      });
+      return vscode.window
+        .showQuickPick(quickPickTeams, {
+          canPickMany: false,
+          placeHolder: "Please select your team room"
+        })
+        .then(selectedItem => {
+          if (!selectedItem) return;
+          const teamRoom = teamRooms.find(t => t.name === selectedItem.label);
+          store.dispatch(actionCreators.setCurrentTeamRoom({ teamRoom }));
+        });
     }
   );
   context.subscriptions.push(changeTeam);
@@ -94,19 +107,19 @@ function activate(context) {
     "extension.startPrimaryWorkitem",
     function() {
       const state = store.getState();
-      const pwis = getTeamPrimaryWorkitems(state);
+      const pwis = getFuturePrimaryWorkItems(state);
       const quickPickItems = pwis.map(pwi => ({
-        label: pwi.name,
-        detail: pwi.description,
-        description: pwi.number
+        label: `${pwi.number}: ${pwi.name}`
       }));
-      return vscode.window.showQuickPick(quickPickItems, {
-        canPickMany: false,
-        placeHolder: "Please select your team room",
-        onDidSelectItem: selectedItem => {
+      return vscode.window
+        .showQuickPick(quickPickItems, {
+          canPickMany: false,
+          placeHolder: "Please select your team room"
+        })
+        .then(selectedItem => {
+          if (!selectedItem) return;
           console.log(selectedItem, arguments, "here here");
-        }
-      });
+        });
     }
   );
   context.subscriptions.push(startPrimaryWorkitemCommand);
