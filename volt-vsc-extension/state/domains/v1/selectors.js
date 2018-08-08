@@ -1,3 +1,4 @@
+const { contains } = require("underscore");
 const { createSelector } = require("reselect");
 
 const getRoot = state => state.v1;
@@ -40,13 +41,14 @@ const getFutureStatus = createSelector(
     ]
 );
 module.exports.getFutureStatus = getFutureStatus;
-module.exports.getFuturePrimaryWorkItems = createSelector(
+const getFuturePrimaryWorkItems = createSelector(
   [getTeamPrimaryWorkitems, getFutureStatus],
   (pwis, futureStatus) => pwis.filter(pwi => pwi.status === futureStatus._oid)
 );
+
 const getMemberMap = createSelector([getRoot], root => root.members);
 const getMyselfOid = createSelector([getRoot], root => root.myself);
-module.exports.getMyself = createSelector(
+const getMyself = createSelector(
   [getMyselfOid, getMemberMap],
   (myselfOid, memberMap) => memberMap[myselfOid]
 );
@@ -54,4 +56,23 @@ const getInDevelopingStatus = createSelector(
   [getStatusMap],
   statusMap => statusMap["StoryStatus:1151474"]
 );
+const getMyInProgressPrimaryWorkitems = createSelector(
+  [getPrimaryWorkItemMap, getInDevelopingStatus, getMyself],
+  (primaryWorkItemMap, inDevelopingStatus, myself) =>
+    Object.keys(primaryWorkItemMap)
+      .map(oid => primaryWorkItemMap[oid])
+      .filter(
+        pwi =>
+          pwi.status === inDevelopingStatus._oid &&
+          contains(pwi.owners, myself._oid)
+      )
+);
+const getCandidatePrimaryWorkitems = createSelector(
+  [getFuturePrimaryWorkItems, getMyInProgressPrimaryWorkitems],
+  (futurePrimaryWorkItems, myInProgressPrimaryWorkitems) =>
+    myInProgressPrimaryWorkitems.concat(futurePrimaryWorkItems)
+);
+
+module.exports.getMyself = getMyself;
 module.exports.getInDevelopingStatus = getInDevelopingStatus;
+module.exports.getCandidatePrimaryWorkItems = getCandidatePrimaryWorkitems;

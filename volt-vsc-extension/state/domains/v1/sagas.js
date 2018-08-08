@@ -1,4 +1,5 @@
 const { call, put, select, takeEvery } = require("redux-saga/effects");
+const { uniq } = require("underscore");
 const createV1Api = require("../../../api");
 const { actions, actionCreators } = require("./actions");
 const {
@@ -7,10 +8,12 @@ const {
   getFutureStatus,
   getMyself
 } = require("./selectors");
+const { sendCommand } = require("../../../terminal");
 
 module.exports = [
   () => takeEvery(actions.setAccessToken, setMyMemberData),
   () => takeEvery(actions.setActiveWorkitem, persistActiveWorkitem),
+  () => takeEvery(actions.setActiveWorkitem, checkoutWorkitemBranch),
   () => takeEvery(actions.setCurrentTeamRoom, fetchPrimaryWorkitemsForTeamRoom)
 ];
 
@@ -51,7 +54,36 @@ function* fetchPrimaryWorkitemsForTeamRoom({ payload: { teamRoom } }) {
         AssetState: "Active"
       }
     });
-    yield put(actionCreators.setPrimaryWorkitems({ items: pwis.data[0] }));
+    const myself = yield select(getMyself);
+    const myPwis = yield call(api.query, {
+      from: "PrimaryWorkitem",
+      select: [
+        "AssetType",
+        "Description",
+        "Name",
+        "Number",
+        "Owners",
+        "Priority",
+        "Scope",
+        "Status",
+        "Status.Name",
+        "Children",
+        "Children.Number",
+        "Children.Name",
+        "Children.Description",
+        "Children.AssetType"
+      ],
+      where: {
+        "Team.Rooms": teamRoom._oid,
+        Owners: myself._oid,
+        AssetState: "Active"
+      }
+    });
+    yield put(
+      actionCreators.setPrimaryWorkitems({
+        items: uniq(pwis.data[0].concat(myPwis.data[0]))
+      })
+    );
   } catch (e) {
     console.error(e);
   }
@@ -79,10 +111,21 @@ function* persistActiveWorkitem({ payload: { workitem } }) {
     const api = createV1Api(accessToken);
     const status = yield select(getInDevelopingStatus);
     const myself = yield select(getMyself);
-    const response = yield call(api.update, workitem._oid, {
+    yield call(api.update, workitem._oid, {
       Owners: [myself._oid],
       Status: status._oid
     });
+  } catch (e) {
+    console.error(e);
+  }
+}
+function* checkoutWorkitemBranch({ payload: { workitem } }) {
+  try {
+    const branchName = `${workitem.number}_${workitem.name.replace(/ /g, "-")}`;
+    sendCommand("git stash");
+    sendCommand(`git checkout -b ${branchName}`);
+    sendCommand(`git checkout ${branchName}`);
+    sendCommand("git stash pop");
   } catch (e) {
     console.error(e);
   }

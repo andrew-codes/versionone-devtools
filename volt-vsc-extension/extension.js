@@ -1,17 +1,19 @@
 const vscode = require("vscode");
 const createStore = require("./state/createStore");
 const createV1Api = require("./api");
+const { actionCreators } = require("./state/domains/v1/actions");
 const {
   getAccessToken,
-  getFuturePrimaryWorkItems,
+  getCandidatePrimaryWorkItems,
   getMyself,
   getTeamRooms
 } = require("./state/domains/v1/selectors");
-const { actionCreators } = require("./state/domains/v1/actions");
+const { initialize } = require("./terminal");
 
 let store;
 function activate(context) {
   store = createStore(context);
+  initialize({ context });
   const initialState = store.getState();
 
   console.log("initial state", initialState);
@@ -107,7 +109,7 @@ function activate(context) {
     "extension.startPrimaryWorkitem",
     function() {
       const state = store.getState();
-      const pwis = getFuturePrimaryWorkItems(state);
+      const pwis = getCandidatePrimaryWorkItems(state);
       const quickPickItems = pwis.map(pwi => ({
         label: `${pwi.number}: ${pwi.name}`
       }));
