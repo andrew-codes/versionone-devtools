@@ -4,6 +4,7 @@ const { createAction } = require("redux-actions");
 const actions = createActionNames("v1", [
   "reset",
   "setAccessToken",
+  "setActiveWorkitem",
   "setCurrentTeamRoom",
   "setMyDetails",
   "setPrimaryWorkitems",
@@ -16,6 +17,7 @@ module.exports.actions = actions;
 module.exports.actionCreators = {
   reset: createAction(actions.reset),
   setAccessToken: createAction(actions.setAccessToken),
+  setActiveWorkitem: createAction(actions.setActiveWorkitem),
   setCurrentTeamRoom: createAction(actions.setCurrentTeamRoom),
   setMyDetails: createAction(actions.setMyDetails),
   setPrimaryWorkitems: createAction(actions.setPrimaryWorkitems),

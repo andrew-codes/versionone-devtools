@@ -50,3 +50,8 @@ module.exports.getMyself = createSelector(
   [getMyselfOid, getMemberMap],
   (myselfOid, memberMap) => memberMap[myselfOid]
 );
+const getInDevelopingStatus = createSelector(
+  [getStatusMap],
+  statusMap => statusMap["StoryStatus:1151474"]
+);
+module.exports.getInDevelopingStatus = getInDevelopingStatus;

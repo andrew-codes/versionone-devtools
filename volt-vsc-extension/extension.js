@@ -118,7 +118,11 @@ function activate(context) {
         })
         .then(selectedItem => {
           if (!selectedItem) return;
-          console.log(selectedItem, arguments, "here here");
+          const number = selectedItem.label.split(":")[0];
+          const selectedPwi = pwis.find(pwi => pwi.number === number);
+          store.dispatch(
+            actionCreators.setActiveWorkitem({ workitem: selectedPwi })
+          );
         });
     }
   );

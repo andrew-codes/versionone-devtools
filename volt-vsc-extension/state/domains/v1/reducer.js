@@ -1,7 +1,7 @@
 const _ = require("underscore");
 const { handleActions } = require("redux-actions");
 const { actions } = require("./actions");
-const { compose, indexBy, isDate, isObject, partial } = _;
+const { compose, indexBy, isDate, isObject, partial, uniq } = _;
 
 const defaultState = {
   members: {},
@@ -15,6 +15,24 @@ const reducer = handleActions(
     [actions.setAccessToken]: (state, { payload: { token } }) =>
       Object.assign({}, state, {
         accessToken: token
+      }),
+    [actions.setActiveWorkitem]: (state, { payload: { workitem } }) =>
+      Object.assign({}, state, {
+        activeWorkitem: workitem._oid,
+        primaryWorkitems: Object.assign({}, state.primaryWorkitems, {
+          [workitem._oid]: Object.assign(
+            {},
+            state.primaryWorkitems[workitem._oid],
+            {
+              owners: uniq(
+                state.primaryWorkitems[workitem._oid].owners.concat([
+                  state.myself
+                ])
+              ),
+              status: "StoryStatus:1151474"
+            }
+          )
+        })
       }),
     [actions.setCurrentTeamRoom]: (state, { payload: { teamRoom } }) =>
       Object.assign({}, state, {

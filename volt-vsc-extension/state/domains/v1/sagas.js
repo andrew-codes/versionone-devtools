@@ -3,13 +3,15 @@ const createV1Api = require("../../../api");
 const { actions, actionCreators } = require("./actions");
 const {
   getAccessToken,
-  getCurrentTeamRoom,
-  getFutureStatus
+  getInDevelopingStatus,
+  getFutureStatus,
+  getMyself
 } = require("./selectors");
 
 module.exports = [
-  () => takeEvery(actions.setCurrentTeamRoom, fetchPrimaryWorkitemsForTeamRoom),
-  () => takeEvery(actions.setAccessToken, setMyMemberData)
+  () => takeEvery(actions.setAccessToken, setMyMemberData),
+  () => takeEvery(actions.setActiveWorkitem, persistActiveWorkitem),
+  () => takeEvery(actions.setCurrentTeamRoom, fetchPrimaryWorkitemsForTeamRoom)
 ];
 
 function* fetchPrimaryWorkitemsForTeamRoom({ payload: { teamRoom } }) {
@@ -67,6 +69,20 @@ function* setMyMemberData({ payload: { token } }) {
     });
     const member = data[0][0];
     yield put(actionCreators.setMyDetails({ member }));
+  } catch (e) {
+    console.error(e);
+  }
+}
+function* persistActiveWorkitem({ payload: { workitem } }) {
+  try {
+    const accessToken = yield select(getAccessToken);
+    const api = createV1Api(accessToken);
+    const status = yield select(getInDevelopingStatus);
+    const myself = yield select(getMyself);
+    const response = yield call(api.update, workitem._oid, {
+      Owners: [myself._oid],
+      Status: status._oid
+    });
   } catch (e) {
     console.error(e);
   }
