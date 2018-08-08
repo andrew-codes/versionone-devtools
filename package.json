@@ -5,6 +5,7 @@
     "volt-vsc-extension"
   ],
   "scripts": {
+    "build": "lerna run build",
     "test": "lerna run test"
   },
   "dependencies": {

@@ -4,6 +4,7 @@
   "description": "Super charge your developer experience with VersionOne and GitHub.",
   "version": "0.0.1",
   "publisher": "andrew-codes",
+  "license": "MIT",
   "author": {
     "name": "Andrew Smith"
   },
@@ -17,7 +18,9 @@
     "onCommand:extension.changeTeamRoom",
     "onCommand:extension.reset",
     "onCommand:extension.setup",
-    "onCommand:extension.startPrimaryWorkitem"
+    "onCommand:extension.startPrimaryWorkitem",
+    "onCommand:extension.showDetailsOfActivePrimaryWorkitem",
+    "onView:assetDetails"
   ],
   "main": "./extension",
   "contributes": {
@@ -37,19 +40,50 @@
       {
         "command": "extension.startPrimaryWorkitem",
         "title": "volt: Start a Story or Defect"
+      },
+      {
+        "command": "extension.showDetailsOfActivePrimaryWorkitem",
+        "title": "volt: Show Asset Details"
       }
     ]
   },
   "scripts": {
     "postinstall": "node ../../node_modules/vscode/bin/install",
-    "test": "node ../../node_modules/vscode/bin/test"
+    "test": "node ../../node_modules/vscode/bin/test",
+    "build": "node ./scripts/build.js"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.42",
     "@types/node": "^7.0.43",
+    "autoprefixer": "7.1.6",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.2",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-react": "^6.24.1",
+    "chalk": "1.1.3",
+    "css-loader": "0.28.7",
+    "dotenv": "4.0.0",
+    "dotenv-expand": "4.2.0",
     "eslint": "^4.11.0",
+    "extract-text-webpack-plugin": "3.0.2",
+    "file-loader": "0.11.2",
+    "fs-extra": "3.0.1",
+    "object-assign": "4.1.1",
+    "promise": "8.0.1",
+    "raf": "3.4.0",
+    "react": "^16.3.2",
+    "react-dev-utils": "^5.0.1",
+    "react-dom": "^16.3.2",
+    "source-map-loader": "^0.2.1",
+    "style-loader": "0.19.0",
+    "sw-precache-webpack-plugin": "0.11.4",
     "typescript": "^2.6.1",
-    "vscode": "^1.1.6"
+    "uglifyjs-webpack-plugin": "^1.1.8",
+    "url-loader": "0.6.2",
+    "vscode": "^1.1.6",
+    "webpack": "3.8.1",
+    "webpack-manifest-plugin": "1.3.2",
+    "whatwg-fetch": "2.0.3"
   },
   "dependencies": {
     "axios": "^0.18.0",

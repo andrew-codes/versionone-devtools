@@ -1,6 +1,7 @@
-const vscode = require("vscode");
+const { commands, window, ViewColumn } = require("vscode");
 const createStore = require("./state/createStore");
 const createV1Api = require("./api");
+const ReactPanel = require("./ReactWebViewPanel");
 const { actionCreators } = require("./state/domains/v1/actions");
 const {
   getAccessToken,
@@ -15,75 +16,68 @@ function activate(context) {
   store = createStore(context);
   initialize({ context });
   const initialState = store.getState();
+  let assetDetailsPanel;
 
   console.log("initial state", initialState);
 
   if (!getAccessToken(initialState)) {
-    vscode.window.showInformationMessage("Please setup the Volt extension.");
+    window.showInformationMessage("Please setup the Volt extension.");
   }
 
-  const setupCommand = vscode.commands.registerCommand(
-    "extension.setup",
-    function() {
-      let v1Api;
-      return vscode.window
-        .showInputBox({
-          password: true,
-          prompt: "Please enter your VersionOne access token",
-          validateInput: value => (!value ? "Access token is required" : null)
-        })
-        .then(token => {
-          store.dispatch(actionCreators.setAccessToken({ token }));
-        })
-        .then(() => {
-          const state = store.getState();
-          const myself = getMyself(state);
-          v1Api = createV1Api(getAccessToken(state));
-          return v1Api
-            .query({
-              from: "TeamRoom",
-              select: ["Name"],
-              where: {
-                Participants: myself._oid
-              }
-            })
-            .then(response => response.data[0])
-            .then(data => {
-              store.dispatch(actionCreators.setTeamRooms({ teamRooms: data }));
-              const state = store.getState();
-              const teamRooms = getTeamRooms(state);
-              const quickPickTeams = teamRooms.map(team => ({
-                label: team.name
-              }));
-              return vscode.window
-                .showQuickPick(quickPickTeams, {
-                  canPickMany: false,
-                  placeHolder: "Please select your team room"
-                })
-                .then(selectedItem => {
-                  if (!selectedItem) return;
-                  const teamRoom = teamRooms.find(
-                    t => t.name === selectedItem.label
-                  );
-                  store.dispatch(
-                    actionCreators.setCurrentTeamRoom({ teamRoom })
-                  );
-                });
-            });
-        });
-    }
-  );
+  const setupCommand = commands.registerCommand("extension.setup", function() {
+    let v1Api;
+    return window
+      .showInputBox({
+        password: true,
+        prompt: "Please enter your VersionOne access token",
+        validateInput: value => (!value ? "Access token is required" : null)
+      })
+      .then(token => {
+        store.dispatch(actionCreators.setAccessToken({ token }));
+      })
+      .then(() => {
+        const state = store.getState();
+        const myself = getMyself(state);
+        v1Api = createV1Api(getAccessToken(state));
+        return v1Api
+          .query({
+            from: "TeamRoom",
+            select: ["Name"],
+            where: {
+              Participants: myself._oid
+            }
+          })
+          .then(response => response.data[0])
+          .then(data => {
+            store.dispatch(actionCreators.setTeamRooms({ teamRooms: data }));
+            const state = store.getState();
+            const teamRooms = getTeamRooms(state);
+            const quickPickTeams = teamRooms.map(team => ({
+              label: team.name
+            }));
+            return window
+              .showQuickPick(quickPickTeams, {
+                canPickMany: false,
+                placeHolder: "Please select your team room"
+              })
+              .then(selectedItem => {
+                if (!selectedItem) return;
+                const teamRoom = teamRooms.find(
+                  t => t.name === selectedItem.label
+                );
+                store.dispatch(actionCreators.setCurrentTeamRoom({ teamRoom }));
+              });
+          });
+      });
+  });
   context.subscriptions.push(setupCommand);
 
-  const resetCommand = vscode.commands.registerCommand(
-    "extension.reset",
-    function() {
-      store.dispatch(actionCreators.reset());
-    }
-  );
+  const resetCommand = commands.registerCommand("extension.reset", function() {
+    store.dispatch(actionCreators.reset());
+  });
   context.subscriptions.push(setupCommand);
 
-  const changeTeam = vscode.commands.registerCommand(
+  const changeTeam = commands.registerCommand(
     "extension.changeTeamRoom",
     function() {
       const state = store.getState();
@@ -91,7 +85,7 @@ function activate(context) {
       const quickPickTeams = teamRooms.map(team => ({
         label: team.name
       }));
-      return vscode.window
+      return window
         .showQuickPick(quickPickTeams, {
           canPickMany: false,
           placeHolder: "Please select your team room"
@@ -105,7 +99,7 @@ function activate(context) {
   );
   context.subscriptions.push(changeTeam);
 
-  const startPrimaryWorkitemCommand = vscode.commands.registerCommand(
+  const startPrimaryWorkitemCommand = commands.registerCommand(
     "extension.startPrimaryWorkitem",
     function() {
       const state = store.getState();
@@ -113,7 +107,7 @@ function activate(context) {
       const quickPickItems = pwis.map(pwi => ({
         label: `${pwi.number}: ${pwi.name}`
       }));
-      return vscode.window
+      return window
         .showQuickPick(quickPickItems, {
           canPickMany: false,
           placeHolder: "Please select your team room"
@@ -129,6 +123,25 @@ function activate(context) {
     }
   );
   context.subscriptions.push(startPrimaryWorkitemCommand);
+
+  const showDetailsOfActivePrimaryWorkitem = commands.registerCommand(
+    "extension.showDetailsOfActivePrimaryWorkitem",
+    function() {
+      ReactPanel.createOrShow(context.extensionPath, "dist", "volt");
+      // if (!assetDetailsPanel) {
+      //   assetDetailsPanel = window.createWebviewPanel(
+      //     "assetDetails",
+      //     "Asset Details",
+      //     ViewColumn.One,
+      //     {}
+      //   );
+      //   assetDetailsPanel.onDidDispose(() => (assetDetailsPanel = null));
+      // }
+      // assetDetailsPanel.webview.html = `<h1>Hello World</h1>`;
+      // assetDetailsPanel.reveal();
+    }
+  );
+  context.subscriptions.push(showDetailsOfActivePrimaryWorkitem);
 }
 exports.activate = activate;
 
