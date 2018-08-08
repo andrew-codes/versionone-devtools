@@ -13,7 +13,8 @@
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}/volt-vsc-extension",
         "C:\\Users\\asmith\\Developer\\repos\\Core-test"
-      ]
+      ],
+      "preLaunchTask": "build"
     },
     {
       "name": "Extension Tests",
