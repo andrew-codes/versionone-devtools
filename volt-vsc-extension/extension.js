@@ -1,3 +1,4 @@
+const Cache = require("vscode-cache");
 const { commands, window, ViewColumn } = require("vscode");
 const createStore = require("./state/createStore");
 const createV1Api = require("./api");
@@ -13,10 +14,12 @@ const { initialize } = require("./terminal");
 
 let store;
 function activate(context) {
-  store = createStore(context);
+  const cache = new Cache(context, "volt");
+  store = createStore(cache.get("state"));
+  store.subscribe(() => cache.put("state", store.getState()));
+
   initialize({ context });
   const initialState = store.getState();
-  let assetDetailsPanel;
 
   console.log("initial state", initialState);
 
@@ -127,7 +130,7 @@ function activate(context) {
   const showDetailsOfActivePrimaryWorkitem = commands.registerCommand(
     "extension.showDetailsOfActivePrimaryWorkitem",
     function() {
-      ReactPanel.createOrShow(context.extensionPath, "dist", "volt");
+      ReactPanel.createOrShow(context.extensionPath, "dist", store);
       // if (!assetDetailsPanel) {
       //   assetDetailsPanel = window.createWebviewPanel(
       //     "assetDetails",

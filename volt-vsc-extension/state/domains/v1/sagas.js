@@ -31,59 +31,57 @@ function* fetchPrimaryWorkitemsForTeamRoom({ payload: { teamRoom } }) {
     yield put(actionCreators.setStatuses({ statuses: statuses.data[0] }));
     const futureStatus = yield select(getFutureStatus);
     const myself = yield select(getMyself);
-    const pwis = yield call(api.query, [
-      {
-        from: "PrimaryWorkitem",
-        select: [
-          "AssetType",
-          "Description",
-          "Name",
-          "Number",
-          "Owners",
-          "Priority",
-          "Scope",
-          "Status",
-          "Status.Name",
-          "Children",
-          "Children.Number",
-          "Children.Name",
-          "Children.Description",
-          "Children.AssetType"
-        ],
-        where: {
-          "Team.Rooms": teamRoom._oid,
-          Status: futureStatus._oid,
-          AssetState: "Active"
-        }
-      },
-      {
-        from: "PrimaryWorkitem",
-        select: [
-          "AssetType",
-          "Description",
-          "Name",
-          "Number",
-          "Owners",
-          "Priority",
-          "Scope",
-          "Status",
-          "Status.Name",
-          "Children",
-          "Children.Number",
-          "Children.Name",
-          "Children.Description",
-          "Children.AssetType"
-        ],
-        where: {
-          "Team.Rooms": teamRoom._oid,
-          Owners: myself._oid,
-          AssetState: "Active"
-        }
+    const pwis = yield call(api.query, {
+      from: "PrimaryWorkitem",
+      select: [
+        "AssetType",
+        "Description",
+        "Name",
+        "Number",
+        "Owners",
+        "Priority",
+        "Scope",
+        "Status",
+        "Status.Name",
+        "Children",
+        "Children.Number",
+        "Children.Name",
+        "Children.Description",
+        "Children.AssetType"
+      ],
+      where: {
+        "Team.Rooms": teamRoom._oid,
+        Status: futureStatus._oid,
+        AssetState: "Active"
       }
-    ]);
+    });
+    const mypwis = yield call(api.query, {
+      from: "PrimaryWorkitem",
+      select: [
+        "AssetType",
+        "Description",
+        "Name",
+        "Number",
+        "Owners",
+        "Priority",
+        "Scope",
+        "Status",
+        "Status.Name",
+        "Children",
+        "Children.Number",
+        "Children.Name",
+        "Children.Description",
+        "Children.AssetType"
+      ],
+      where: {
+        "Team.Rooms": teamRoom._oid,
+        Owners: myself._oid,
+        AssetState: "Active"
+      }
+    });
     yield put(
       actionCreators.setPrimaryWorkitems({
-        items: uniq(pwis.data[0].concat(pwis.data[1]))
+        items: uniq(pwis.data[0].concat(mypwis.data[0]))
       })
     );
   } catch (e) {

@@ -11,7 +11,7 @@ module.exports = class ReactPanel {
     return "react";
   }
 
-  static createOrShow(extensionPath, distDirectoryName) {
+  static createOrShow(extensionPath, distDirectoryName, store) {
     const column = window.activeTextEditor
       ? window.activeTextEditor.viewColumn
       : undefined;
@@ -22,14 +22,16 @@ module.exports = class ReactPanel {
       currentPanel = new ReactPanel(
         extensionPath,
         column || ViewColumn.One,
-        distDirectoryName
+        distDirectoryName,
+        store
       );
     }
   }
 
-  constructor(extensionPath, column, distDirectoryName) {
+  constructor(extensionPath, column, distDirectoryName, store) {
     this.extensionPath = extensionPath;
     this.dist = distDirectoryName;
+    this.store = store;
     this.disposables = [];
     this.dispose = this.dispose.bind(this);
     this.getHtmlForWebview = this.getHtmlForWebview.bind(this);
@@ -50,11 +52,7 @@ module.exports = class ReactPanel {
 
     this.panel.webview.onDidReceiveMessage(
       message => {
-        switch (message.command) {
-          case "alert":
-            window.showErrorMessage(message.text);
-            return;
-        }
+        store.dispatch(message.command);
       },
       null,
       this.disposables
@@ -115,7 +113,9 @@ module.exports = class ReactPanel {
 			<body>
 				<noscript>You need to enable JavaScript to run this app.</noscript>
 				<div id="root"></div>
-
+        <script nonce="${nonce}">window.__initialState__ = ${JSON.stringify(
+      this.store.getState()
+    )}</script>
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
 			</html>`;

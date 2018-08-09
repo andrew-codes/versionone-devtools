@@ -72,7 +72,27 @@ const getCandidatePrimaryWorkitems = createSelector(
   (futurePrimaryWorkItems, myInProgressPrimaryWorkitems) =>
     myInProgressPrimaryWorkitems.concat(futurePrimaryWorkItems)
 );
+const getActiveWorkitemOid = createSelector(
+  [getRoot],
+  root => root.activeWorkitem
+);
+const getActiveWorkitem = createSelector(
+  [getPrimaryWorkItemMap, getActiveWorkitemOid],
+  (pwiMap, currentPwi) => pwiMap[currentPwi]
+);
+const getTestMap = createSelector([getRoot], root => root.tests);
+const getTaskMap = createSelector([getRoot], root => root.tasks);
+const getActiveAssetDetails = createSelector(
+  [getActiveWorkitem, getTestMap, getTaskMap],
+  (activeWorkitem, testMap, taskMap) =>
+    Object.assign({}, activeWorkitem, {
+      children: activeWorkitem.children.map(
+        oid => (testMap[oid] ? testMap[oid] : taskMap[oid])
+      )
+    })
+);
 
 module.exports.getMyself = getMyself;
 module.exports.getInDevelopingStatus = getInDevelopingStatus;
 module.exports.getCandidatePrimaryWorkItems = getCandidatePrimaryWorkitems;
+module.exports.getActiveAssetDetails = getActiveAssetDetails;
