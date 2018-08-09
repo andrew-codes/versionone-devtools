@@ -1,4 +1,5 @@
 const path = require("path");
+const { noop } = require("underscore");
 const { Uri, ViewColumn, window } = require("vscode");
 
 let currentPanel;
@@ -11,7 +12,12 @@ module.exports = class ReactPanel {
     return "react";
   }
 
-  static createOrShow(extensionPath, distDirectoryName, store) {
+  static createOrShow(
+    extensionPath,
+    distDirectoryName,
+    store,
+    onDidDispose = noop
+  ) {
     const column = window.activeTextEditor
       ? window.activeTextEditor.viewColumn
       : undefined;
@@ -23,16 +29,26 @@ module.exports = class ReactPanel {
         extensionPath,
         column || ViewColumn.One,
         distDirectoryName,
-        store
+        store,
+        {
+          onDidDispose
+        }
       );
     }
   }
 
-  constructor(extensionPath, column, distDirectoryName, store) {
+  constructor(
+    extensionPath,
+    column,
+    distDirectoryName,
+    store,
+    { onDidDispose }
+  ) {
     this.extensionPath = extensionPath;
     this.dist = distDirectoryName;
     this.store = store;
     this.disposables = [];
+    this.onDidDispose = onDidDispose;
     this.dispose = this.dispose.bind(this);
     this.getHtmlForWebview = this.getHtmlForWebview.bind(this);
 
@@ -75,6 +91,7 @@ module.exports = class ReactPanel {
         x.dispose();
       }
     }
+    this.onDidDispose();
   }
 
   getHtmlForWebview() {

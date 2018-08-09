@@ -14,21 +14,44 @@ module.exports = [
   () => takeEvery(actions.setAccessToken, setMyMemberData),
   () => takeEvery(actions.setActiveWorkitem, persistActiveWorkitem),
   () => takeEvery(actions.setActiveWorkitem, checkoutWorkitemBranch),
-  () => takeEvery(actions.setCurrentTeamRoom, fetchPrimaryWorkitemsForTeamRoom)
+  () => takeEvery(actions.setCurrentTeamRoom, fetchPrimaryWorkitemsForTeamRoom),
+  () =>
+    takeEvery(
+      actions.showDetailsOfActivePrimaryWorkitem,
+      showDetailsOfActivePrimaryWorkitem
+    )
 ];
 
 function* fetchPrimaryWorkitemsForTeamRoom({ payload: { teamRoom } }) {
   try {
     const accessToken = yield select(getAccessToken);
     const api = createV1Api(accessToken);
-    const statuses = yield call(api.query, {
+    const storyStatuses = yield call(api.query, {
       from: "Status",
       select: ["AssetType", "Description", "Name", "Order", "RollupState"],
       where: {
         "Team.Rooms": teamRoom._oid
       }
     });
-    yield put(actionCreators.setStatuses({ statuses: statuses.data[0] }));
+    const testStatuses = yield call(api.query, {
+      from: "TestStatus",
+      select: ["AssetType", "Description", "Name", "Order"],
+      where: {
+        "Team.Rooms": teamRoom._oid
+      }
+    });
+    const taskStatues = yield call(api.query, {
+      from: "TaskStatus",
+      select: ["AssetType", "Description", "Name", "Order"],
+      where: {
+        "Team.Rooms": teamRoom._oid
+      }
+    });
+    const statuses = storyStatuses.data[0]
+      .concat(testStatuses.data[0])
+      .concat(taskStatues.data[0]);
+    yield put(actionCreators.setStatuses({ statuses }));
+
     const futureStatus = yield select(getFutureStatus);
     const myself = yield select(getMyself);
     const pwis = yield call(api.query, {
@@ -129,4 +152,7 @@ function* checkoutWorkitemBranch({ payload: { workitem } }) {
   } catch (e) {
     console.error(e);
   }
+}
+function* showDetailsOfActivePrimaryWorkitem({ item }) {
+  yield put(actionCreators.markAssetDetailsWebviewPanelToBeVisible());
 }

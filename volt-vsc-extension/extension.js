@@ -6,7 +6,9 @@ const ReactPanel = require("./ReactWebViewPanel");
 const { actionCreators } = require("./state/domains/v1/actions");
 const {
   getAccessToken,
+  getActiveWorkitem,
   getCandidatePrimaryWorkItems,
+  getShouldShowReactViewPanel,
   getMyself,
   getTeamRooms
 } = require("./state/domains/v1/selectors");
@@ -17,11 +19,22 @@ function activate(context) {
   const cache = new Cache(context, "volt");
   store = createStore(cache.get("state"));
   store.subscribe(() => cache.put("state", store.getState()));
+  const onDidDisposeOfViewPanel = () =>
+    store.dispatch(actionCreators.hideReactWebviewPanel());
+  store.subscribe(() => {
+    if (getShouldShowReactViewPanel(store.getState())) {
+      ReactPanel.createOrShow(
+        context.extensionPath,
+        "dist",
+        store,
+        onDidDisposeOfViewPanel
+      );
+      store.dispatch(actionCreators.showReactWebviewPanel());
+    }
+  });
 
   initialize({ context });
   const initialState = store.getState();
-
-  console.log("initial state", initialState);
 
   if (!getAccessToken(initialState)) {
     window.showInformationMessage("Please setup the Volt extension.");
@@ -130,18 +143,12 @@ function activate(context) {
   const showDetailsOfActivePrimaryWorkitem = commands.registerCommand(
     "extension.showDetailsOfActivePrimaryWorkitem",
     function() {
-      ReactPanel.createOrShow(context.extensionPath, "dist", store);
-      // if (!assetDetailsPanel) {
-      //   assetDetailsPanel = window.createWebviewPanel(
-      //     "assetDetails",
-      //     "Asset Details",
-      //     ViewColumn.One,
-      //     {}
-      //   );
-      //   assetDetailsPanel.onDidDispose(() => (assetDetailsPanel = null));
-      // }
-      // assetDetailsPanel.webview.html = `<h1>Hello World</h1>`;
-      // assetDetailsPanel.reveal();
+      const item = getActiveWorkitem(store.getState());
+      store.dispatch(
+        actionCreators.showDetailsOfActivePrimaryWorkitem({
+          item
+        })
+      );
     }
   );
   context.subscriptions.push(showDetailsOfActivePrimaryWorkitem);

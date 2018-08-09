@@ -80,6 +80,20 @@ const reducer = handleActions(
     [actions.setTeamRooms]: (state, { payload: { teamRooms } }) =>
       Object.assign({}, state, {
         teamRooms: indexBy(normalize(teamRooms), "_oid")
+      }),
+    [actions.markAssetDetailsWebviewPanelToBeVisible]: state =>
+      Object.assign({}, state, {
+        markReactViewPanelToBeVisible: true
+      }),
+    [actions.showReactWebviewPanel]: state =>
+      Object.assign({}, state, {
+        reactViewPanelIsVisible: true,
+        markReactViewPanelToBeVisible: false
+      }),
+    [actions.hideReactWebviewPanel]: state =>
+      Object.assign({}, state, {
+        reactViewPanelIsVisible: false,
+        markReactViewPanelToBeVisible: false
       })
   },
   defaultState

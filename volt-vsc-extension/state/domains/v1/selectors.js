@@ -91,8 +91,14 @@ const getActiveAssetDetails = createSelector(
       )
     })
 );
+const getShouldShowReactViewPanel = createSelector(
+  [getRoot],
+  root => !root.reactViewPanelIsVisible && !!root.markReactViewPanelToBeVisible
+);
 
 module.exports.getMyself = getMyself;
 module.exports.getInDevelopingStatus = getInDevelopingStatus;
 module.exports.getCandidatePrimaryWorkItems = getCandidatePrimaryWorkitems;
+module.exports.getActiveWorkitem = getActiveWorkitem;
 module.exports.getActiveAssetDetails = getActiveAssetDetails;
+module.exports.getShouldShowReactViewPanel = getShouldShowReactViewPanel;
