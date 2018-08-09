@@ -10,7 +10,8 @@ const {
   getCandidatePrimaryWorkItems,
   getShouldShowReactViewPanel,
   getMyself,
-  getTeamRooms
+  getTeamRooms,
+  getActiveAssetDetails
 } = require("./state/domains/v1/selectors");
 const { initialize } = require("./terminal");
 
@@ -19,10 +20,12 @@ function activate(context) {
   const cache = new Cache(context, "volt");
   store = createStore(cache.get("state"));
   store.subscribe(() => cache.put("state", store.getState()));
+  store.dispatch(actionCreators.hideReactWebviewPanel());
   const onDidDisposeOfViewPanel = () =>
     store.dispatch(actionCreators.hideReactWebviewPanel());
   store.subscribe(() => {
     if (getShouldShowReactViewPanel(store.getState())) {
+      console.log(getActiveAssetDetails(store.getState()));
       ReactPanel.createOrShow(
         context.extensionPath,
         "dist",

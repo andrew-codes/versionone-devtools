@@ -14,7 +14,7 @@ module.exports = [
   () => takeEvery(actions.setAccessToken, setMyMemberData),
   () => takeEvery(actions.setActiveWorkitem, persistActiveWorkitem),
   () => takeEvery(actions.setActiveWorkitem, checkoutWorkitemBranch),
-  () => takeEvery(actions.setCurrentTeamRoom, fetchPrimaryWorkitemsForTeamRoom),
+  () => takeEvery(actions.setCurrentTeamRoom, fetchAssetsForTeamRoom),
   () =>
     takeEvery(
       actions.showDetailsOfActivePrimaryWorkitem,
@@ -22,7 +22,7 @@ module.exports = [
     )
 ];
 
-function* fetchPrimaryWorkitemsForTeamRoom({ payload: { teamRoom } }) {
+function* fetchAssetsForTeamRoom({ payload: { teamRoom } }) {
   try {
     const accessToken = yield select(getAccessToken);
     const api = createV1Api(accessToken);
@@ -36,16 +36,12 @@ function* fetchPrimaryWorkitemsForTeamRoom({ payload: { teamRoom } }) {
     const testStatuses = yield call(api.query, {
       from: "TestStatus",
       select: ["AssetType", "Description", "Name", "Order"],
-      where: {
-        "Team.Rooms": teamRoom._oid
-      }
+      filter: ["AssetState!='Closed'"]
     });
     const taskStatues = yield call(api.query, {
       from: "TaskStatus",
       select: ["AssetType", "Description", "Name", "Order"],
-      where: {
-        "Team.Rooms": teamRoom._oid
-      }
+      filter: ["AssetState!='Closed'"]
     });
     const statuses = storyStatuses.data[0]
       .concat(testStatuses.data[0])
@@ -66,11 +62,7 @@ function* fetchPrimaryWorkitemsForTeamRoom({ payload: { teamRoom } }) {
         "Scope",
         "Status",
         "Status.Name",
-        "Children",
-        "Children.Number",
-        "Children.Name",
-        "Children.Description",
-        "Children.AssetType"
+        "Children"
       ],
       where: {
         "Team.Rooms": teamRoom._oid,
@@ -90,11 +82,7 @@ function* fetchPrimaryWorkitemsForTeamRoom({ payload: { teamRoom } }) {
         "Scope",
         "Status",
         "Status.Name",
-        "Children",
-        "Children.Number",
-        "Children.Name",
-        "Children.Description",
-        "Children.AssetType"
+        "Children"
       ],
       where: {
         "Team.Rooms": teamRoom._oid,
@@ -153,6 +141,24 @@ function* checkoutWorkitemBranch({ payload: { workitem } }) {
     console.error(e);
   }
 }
-function* showDetailsOfActivePrimaryWorkitem({ item }) {
+function* showDetailsOfActivePrimaryWorkitem({ payload: { item } }) {
+  const accessToken = yield select(getAccessToken);
+  const api = createV1Api(accessToken);
+  const pwiTests = yield call(api.query, {
+    from: "Test",
+    select: ["Name", "Description", "Status", "AssetType", "Number"],
+    filter: ["AssetState!='Closed'", `ParentAndMe='${item._oid}'`]
+  });
+  const pwiTasks = yield call(api.query, {
+    from: "Task",
+    select: ["Name", "Description", "Status", "AssetType", "Number"],
+    filter: ["AssetState!='Closed'", `ParentAndMe='${item._oid}'`]
+  });
+  yield put(
+    actionCreators.setPrimaryWorkitemChildren({
+      tasks: pwiTasks.data[0],
+      tests: pwiTests.data[0]
+    })
+  );
   yield put(actionCreators.markAssetDetailsWebviewPanelToBeVisible());
 }

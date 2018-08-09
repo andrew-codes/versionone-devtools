@@ -1,6 +1,12 @@
 import React from "React";
 
-export default function AssetDetails({ name, number, description, children }) {
+export default function AssetDetails({
+  name,
+  number,
+  description,
+  tasks,
+  tests
+}) {
   return (
     <div>
       <header>
@@ -11,17 +17,21 @@ export default function AssetDetails({ name, number, description, children }) {
         <section>
           <h2>Tests</h2>
           <ol>
-            {children
-              .filter(child => child.assetType === "Test")
-              .map(child => <li key={child._oid}>{child.name}</li>)}
+            {tests.map(child => (
+              <li key={child._oid}>
+                <input type="checkbox" checked={child.isReady} /> {child.name}
+              </li>
+            ))}
           </ol>
         </section>
         <section>
           <h2>Tasks</h2>
           <ol>
-            {children
-              .filter(child => child.assetType === "Task")
-              .map(child => <li key={child._oid}>{child.name}</li>)}
+            {tasks.map(child => (
+              <li key={child._oid}>
+                <input type="checkbox" checked={child.isReady} /> {child.name}
+              </li>
+            ))}
           </ol>
         </section>
       </header>

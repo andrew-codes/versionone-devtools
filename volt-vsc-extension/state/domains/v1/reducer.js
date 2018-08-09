@@ -47,28 +47,7 @@ const reducer = handleActions(
     },
     [actions.setPrimaryWorkitems]: (state, { payload: { items } }) => {
       const pwis = normalize(items);
-      const children = pwis.reduce(
-        (prev, pwi) =>
-          prev.concat(
-            pwi.children.map((childOid, index) => ({
-              _oid: childOid,
-              assetType: pwi["children.AssetType"][index],
-              description: pwi["children.Description"][index],
-              name: pwi["children.Name"][index],
-              number: pwi["children.Number"][index]
-            }))
-          ),
-        []
-      );
       return Object.assign({}, state, {
-        tasks: indexBy(
-          children.filter(child => child.assetType === "Task"),
-          "_oid"
-        ),
-        tests: indexBy(
-          children.filter(child => child.assetType === "Test"),
-          "_oid"
-        ),
         primaryWorkitems: indexBy(pwis, "_oid"),
         primaryWorkitemOrder: pwis.map(pwi => pwi._oid)
       });
@@ -94,6 +73,18 @@ const reducer = handleActions(
       Object.assign({}, state, {
         reactViewPanelIsVisible: false,
         markReactViewPanelToBeVisible: false
+      }),
+    [actions.setPrimaryWorkitemChildren]: (
+      state,
+      { payload: { tasks, tests } }
+    ) =>
+      Object.assign({}, state, {
+        tasks: Object.assign(
+          {},
+          state.tasks,
+          indexBy(normalize(tasks), "_oid")
+        ),
+        tests: Object.assign({}, state.tests, indexBy(normalize(tests), "_oid"))
       })
   },
   defaultState

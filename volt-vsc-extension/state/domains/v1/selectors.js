@@ -80,16 +80,40 @@ const getActiveWorkitem = createSelector(
   [getPrimaryWorkItemMap, getActiveWorkitemOid],
   (pwiMap, currentPwi) => pwiMap[currentPwi]
 );
+const getTestReadyStatus = createSelector(
+  [getStatusMap],
+  statusMap => statusMap["TestStatus:103240"]
+);
+const getTaskReadyStatus = createSelector(
+  [getStatusMap],
+  statusMap => statusMap["TaskStatus:1025"]
+);
 const getTestMap = createSelector([getRoot], root => root.tests);
 const getTaskMap = createSelector([getRoot], root => root.tasks);
 const getActiveAssetDetails = createSelector(
-  [getActiveWorkitem, getTestMap, getTaskMap],
-  (activeWorkitem, testMap, taskMap) =>
-    Object.assign({}, activeWorkitem, {
-      children: activeWorkitem.children.map(
-        oid => (testMap[oid] ? testMap[oid] : taskMap[oid])
-      )
-    })
+  [
+    getActiveWorkitem,
+    getTestMap,
+    getTaskMap,
+    getTestReadyStatus,
+    getTaskReadyStatus
+  ],
+  (activeWorkitem, testMap, taskMap, testReadyStatus, taskReadyStatus) => {
+    const hydratedChildren = activeWorkitem.children.map(oid => {
+      if (testMap[oid]) {
+        return Object.assign({}, testMap[oid], {
+          isReady: testMap[oid].status === testReadyStatus._oid
+        });
+      }
+      return Object.assign({}, taskMap[oid], {
+        isReady: taskMap[oid].status === taskReadyStatus._oid
+      });
+    });
+    return Object.assign({}, activeWorkitem, {
+      tasks: hydratedChildren.filter(child => child.assetType === "Task"),
+      tests: hydratedChildren.filter(child => child.assetType === "Test")
+    });
+  }
 );
 const getShouldShowReactViewPanel = createSelector(
   [getRoot],
