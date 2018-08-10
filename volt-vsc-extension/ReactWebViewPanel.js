@@ -71,16 +71,12 @@ module.exports = class ReactPanel {
 
     this.panel.webview.onDidReceiveMessage(
       message => {
-        store.dispatch(message.command);
+        store.dispatch(message);
       },
       null,
       this.disposables
     );
   }
-
-  //  doRefactor() {
-  // 	this.panel.webview.postMessage({ command: 'refactor' });
-  // }
 
   dispose() {
     currentPanel = undefined;
@@ -135,7 +131,8 @@ module.exports = class ReactPanel {
 				<div id="root"></div>
         <script nonce="${nonce}">window.__initialState__ = ${JSON.stringify(
       this.store.getState()
-    )}</script>
+    )};
+    window.vscode = acquireVsCodeApi();</script>
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
 			</html>`;

@@ -1,12 +1,23 @@
 import React from "React";
 import AssetDetails from "./AssetDetails";
-import { getActiveAssetDetails } from "./../state/domains/v1/selectors";
+import {
+  getActiveAssetDetails,
+  getTestReadyStatus,
+  getTestDevelopingStatus
+} from "./../state/domains/v1/selectors";
 
-function App(props) {
-  const currentAsset = getActiveAssetDetails(props.state);
+function App({ api, state }) {
+  const currentAsset = getActiveAssetDetails(state);
+  const testReadyStatus = getTestReadyStatus(state);
+  const testDevelopingStatus = getTestDevelopingStatus(state);
   return (
     <div>
-      <AssetDetails {...currentAsset} />
+      <AssetDetails
+        {...currentAsset}
+        dispatch={api.postMessage}
+        testReadyStatus={testReadyStatus}
+        testDevelopingStatus={testDevelopingStatus}
+      />
     </div>
   );
 }

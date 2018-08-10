@@ -79,6 +79,14 @@ const reducer = handleActions(
         reactViewPanelIsVisible: true,
         markReactViewPanelToBeVisible: false
       }),
+    [actions.setTestStatus]: (state, { payload: { test, status } }) =>
+      Object.assign({}, state, {
+        tests: Object.assign({}, state.tests, {
+          [test._oid]: Object.assign({}, state.tests[test._oid], {
+            status: status._oid
+          })
+        })
+      }),
     [actions.hideReactWebviewPanel]: state =>
       Object.assign({}, state, {
         reactViewPanelIsVisible: false,

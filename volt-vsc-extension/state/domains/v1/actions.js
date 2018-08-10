@@ -21,7 +21,8 @@ const actions = createActionNames("v1", [
   "setStatuses",
   "setTeamRooms",
   "setUsername",
-  "showDetailsOfActivePrimaryWorkitem"
+  "showDetailsOfActivePrimaryWorkitem",
+  "setTestStatus"
 ]);
 
 module.exports.actions = actions;
@@ -47,6 +48,7 @@ module.exports.actionCreators = {
   setPrimaryWorkitemChildren: createAction(actions.setPrimaryWorkitemChildren),
   setPrimaryWorkitems: createAction(actions.setPrimaryWorkitems),
   setStatuses: createAction(actions.setStatuses),
+  setTestStatus: createAction(actions.setTestStatus),
   setTeamRooms: createAction(actions.setTeamRooms),
   setUsername: createAction(actions.setUsername),
   showDetailsOfActivePrimaryWorkitem: createAction(

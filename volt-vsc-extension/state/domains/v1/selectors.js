@@ -84,6 +84,10 @@ const getTestReadyStatus = createSelector(
   [getStatusMap],
   statusMap => statusMap["TestStatus:103240"]
 );
+const getTestDevelopingStatus = createSelector(
+  [getStatusMap],
+  statusMap => statusMap["TestStatus:123733"]
+);
 const getTaskReadyStatus = createSelector(
   [getStatusMap],
   statusMap => statusMap["TaskStatus:1025"]
@@ -142,3 +146,5 @@ module.exports.getActiveAssetDetails = getActiveAssetDetails;
 module.exports.getShouldShowReactViewPanel = getShouldShowReactViewPanel;
 module.exports.getIfShouldShowTeamRoomSelector = getIfShouldShowTeamRoomSelector;
 module.exports.getShouldShowPrimaryWorkitemSelector = getShouldShowPrimaryWorkitemSelector;
+module.exports.getTestReadyStatus = getTestReadyStatus;
+module.exports.getTestDevelopingStatus = getTestDevelopingStatus;
