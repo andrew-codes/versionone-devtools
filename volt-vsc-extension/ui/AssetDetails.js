@@ -1,9 +1,11 @@
 import React from "React";
+import { noop } from "underscore";
 
 export default function AssetDetails({
   name,
   number,
   description,
+  onUpdate,
   tasks,
   tests
 }) {
@@ -38,3 +40,6 @@ export default function AssetDetails({
     </div>
   );
 }
+AssetDetails.defaultProps = {
+  onUpdate: noop
+};

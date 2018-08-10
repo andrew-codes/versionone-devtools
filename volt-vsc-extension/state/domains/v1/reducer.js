@@ -16,8 +16,13 @@ const reducer = handleActions(
       Object.assign({}, state, {
         accessToken: token
       }),
+    [actions.showPrimaryWorkitemSelector]: state =>
+      Object.assign({}, state, {
+        showPrimaryWorkitemSelector: true
+      }),
     [actions.setActiveWorkitem]: (state, { payload: { workitem } }) =>
       Object.assign({}, state, {
+        showPrimaryWorkitemSelector: false,
         activeWorkitem: workitem._oid,
         primaryWorkitems: Object.assign({}, state.primaryWorkitems, {
           [workitem._oid]: Object.assign(
@@ -36,8 +41,13 @@ const reducer = handleActions(
       }),
     [actions.setCurrentTeamRoom]: (state, { payload: { teamRoom } }) =>
       Object.assign({}, state, {
+        showTeamRoomSelector: false,
         currentTeam: teamRoom._oid
       }),
+    [actions.membersFetching]: state =>
+      Object.assign({}, state, { membersFetching: true }),
+    [actions.membersFetchingDone]: state =>
+      Object.assign({}, state, { membersFetching: false }),
     [actions.setMyDetails]: (state, { payload: { member } }) => {
       const myself = normalize(member);
       return Object.assign({}, state, {
@@ -73,6 +83,10 @@ const reducer = handleActions(
       Object.assign({}, state, {
         reactViewPanelIsVisible: false,
         markReactViewPanelToBeVisible: false
+      }),
+    [actions.showTeamRoomSelector]: state =>
+      Object.assign({}, state, {
+        showTeamRoomSelector: true
       }),
     [actions.setPrimaryWorkitemChildren]: (
       state,

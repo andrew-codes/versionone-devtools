@@ -119,6 +119,19 @@ const getShouldShowReactViewPanel = createSelector(
   [getRoot],
   root => !root.reactViewPanelIsVisible && !!root.markReactViewPanelToBeVisible
 );
+const getIfMembersAreBeingFetched = createSelector(
+  [getRoot],
+  root => root.membersFetching
+);
+const getIfShouldShowTeamRoomSelector = createSelector(
+  [getRoot, getIfMembersAreBeingFetched],
+  (root, areMembersBeingFetched) =>
+    !areMembersBeingFetched && root.showTeamRoomSelector
+);
+const getShouldShowPrimaryWorkitemSelector = createSelector(
+  [getRoot],
+  root => root.showPrimaryWorkitemSelector
+);
 
 module.exports.getMyself = getMyself;
 module.exports.getInDevelopingStatus = getInDevelopingStatus;
@@ -126,3 +139,5 @@ module.exports.getCandidatePrimaryWorkItems = getCandidatePrimaryWorkitems;
 module.exports.getActiveWorkitem = getActiveWorkitem;
 module.exports.getActiveAssetDetails = getActiveAssetDetails;
 module.exports.getShouldShowReactViewPanel = getShouldShowReactViewPanel;
+module.exports.getIfShouldShowTeamRoomSelector = getIfShouldShowTeamRoomSelector;
+module.exports.getShouldShowPrimaryWorkitemSelector = getShouldShowPrimaryWorkitemSelector;

@@ -1,15 +1,14 @@
 import React from "react";
 import * as ReactDOM from "react-dom";
-import { createStore } from "redux";
-import { Provider } from "react-redux";
 import App from "./App";
-import * as reducer from "../state/reducer";
 
-const store = createStore(reducer.default, window.__initialState__);
+function render(state) {
+  ReactDOM.render(<App state={state} />, document.getElementById("root"));
+}
 
-ReactDOM.render(
-  <Provider store={store}>
-    <App />
-  </Provider>,
-  document.getElementById("root")
-);
+render(window.__initialState__);
+
+window.addEventListener("message", evt => {
+  console.log(" state updated", evt.data.state);
+  render(evt.data.state);
+});
