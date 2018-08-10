@@ -129,8 +129,9 @@ const getIfShouldShowTeamRoomSelector = createSelector(
     !areMembersBeingFetched && root.showTeamRoomSelector
 );
 const getShouldShowPrimaryWorkitemSelector = createSelector(
-  [getRoot],
-  root => root.showPrimaryWorkitemSelector
+  [getRoot, getShouldShowReactViewPanel],
+  (root, shouldShowReactViewPanel) =>
+    !shouldShowReactViewPanel && root.showPrimaryWorkitemSelector
 );
 
 module.exports.getMyself = getMyself;
