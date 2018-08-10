@@ -3,13 +3,17 @@ import AssetDetails from "./AssetDetails";
 import {
   getActiveAssetDetails,
   getTestReadyStatus,
-  getTestDevelopingStatus
+  getTestDevelopingStatus,
+  getTaskReadyStatus,
+  getTaskDevelopingStatus
 } from "./../state/domains/v1/selectors";
 
 function App({ api, state }) {
   const currentAsset = getActiveAssetDetails(state);
   const testReadyStatus = getTestReadyStatus(state);
   const testDevelopingStatus = getTestDevelopingStatus(state);
+  const taskReadyStatus = getTaskReadyStatus(state);
+  const taskDevelopingStatus = getTaskDevelopingStatus(state);
   return (
     <div>
       <AssetDetails
@@ -17,6 +21,8 @@ function App({ api, state }) {
         dispatch={api.postMessage}
         testReadyStatus={testReadyStatus}
         testDevelopingStatus={testDevelopingStatus}
+        taskReadyStatus={taskReadyStatus}
+        taskDevelopingStatus={taskDevelopingStatus}
       />
     </div>
   );

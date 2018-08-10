@@ -20,7 +20,9 @@ module.exports = [
     takeEvery(
       actions.showDetailsOfActivePrimaryWorkitem,
       showDetailsOfActivePrimaryWorkitem
-    )
+    ),
+  () => takeEvery(actions.setTestStatus, persistUpdatedTestStatus),
+  () => takeEvery(actions.setTaskStatus, persistUpdatedTaskStatus)
 ];
 
 function* startPrimaryWorkitem() {
@@ -120,16 +122,25 @@ function* fetchTeamRooms() {
     console.error(error);
   }
 }
+function* persistAssetUpdate(oid, asset) {
+  const accessToken = yield select(getAccessToken);
+  const api = createV1Api(accessToken);
+  return yield call(api.update, oid, asset);
+}
 function* persistActiveWorkitem({ payload: { workitem } }) {
   try {
-    const accessToken = yield select(getAccessToken);
-    const api = createV1Api(accessToken);
     const status = yield select(getInDevelopingStatus);
     const myself = yield select(getMyself);
-    yield call(api.update, workitem._oid, {
-      Owners: [myself._oid],
-      Status: status._oid
-    });
+    yield persistAssetUpdate(
+      workitem._oid,
+      Object.assign(
+        {},
+        {
+          Owners: [myself._oid],
+          Status: status._oid
+        }
+      )
+    );
   } catch (e) {
     console.error(e);
   }
@@ -213,4 +224,26 @@ function* showDetailsOfActivePrimaryWorkitem() {
     })
   );
   yield put(actionCreators.markAssetDetailsWebviewPanelToBeVisible());
+}
+
+function* persistUpdatedTestStatus({ payload: { test, status } }) {
+  try {
+    yield persistAssetUpdate(
+      test._oid,
+      Object.assign({}, { Status: status._oid })
+    );
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function* persistUpdatedTaskStatus({ payload: { task, status } }) {
+  try {
+    yield persistAssetUpdate(
+      task._oid,
+      Object.assign({}, { Status: status._oid })
+    );
+  } catch (e) {
+    console.error(e);
+  }
 }

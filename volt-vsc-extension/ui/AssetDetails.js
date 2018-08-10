@@ -10,7 +10,9 @@ export default function AssetDetails({
   tasks,
   tests,
   testReadyStatus,
-  testDevelopingStatus
+  testDevelopingStatus,
+  taskReadyStatus,
+  taskDevelopingStatus
 }) {
   return (
     <div>
@@ -53,9 +55,30 @@ export default function AssetDetails({
         <section>
           <h2>Tasks</h2>
           <ol>
-            {tasks.map(child => (
-              <li key={child._oid}>
-                <input type="checkbox" checked={child.isReady} /> {child.name}
+            {tasks.map(task => (
+              <li key={task._oid}>
+                <input
+                  type="checkbox"
+                  checked={task.isReady}
+                  onChange={() => {
+                    if (task.isReady) {
+                      dispatch(
+                        actionCreators.setTaskStatus({
+                          task,
+                          status: taskDevelopingStatus
+                        })
+                      );
+                    } else {
+                      dispatch(
+                        actionCreators.setTaskStatus({
+                          task,
+                          status: taskReadyStatus
+                        })
+                      );
+                    }
+                  }}
+                />{" "}
+                {task.name}
               </li>
             ))}
           </ol>

@@ -87,6 +87,14 @@ const reducer = handleActions(
           })
         })
       }),
+    [actions.setTaskStatus]: (state, { payload: { task, status } }) =>
+      Object.assign({}, state, {
+        tasks: Object.assign({}, state.tasks, {
+          [task._oid]: Object.assign({}, state.tasks[task._oid], {
+            status: status._oid
+          })
+        })
+      }),
     [actions.hideReactWebviewPanel]: state =>
       Object.assign({}, state, {
         reactViewPanelIsVisible: false,
