@@ -65,8 +65,10 @@ module.exports = class ReactPanel {
     this.panel.webview.html = this.getHtmlForWebview();
 
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
-    store.subscribe(() => {
-      this.panel.webview.postMessage({ state: store.getState() });
+    this.unsubscribe = store.subscribe(() => {
+      if (currentPanel) {
+        this.panel.webview.postMessage({ state: store.getState() });
+      }
     });
 
     this.panel.webview.onDidReceiveMessage(
@@ -80,6 +82,7 @@ module.exports = class ReactPanel {
 
   dispose() {
     currentPanel = undefined;
+    this.unsubscribe();
     this.onDidDispose();
 
     // Clean up our resources
