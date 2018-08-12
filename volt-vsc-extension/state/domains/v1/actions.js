@@ -23,7 +23,8 @@ const actions = createActionNames("v1", [
   "setUsername",
   "showDetailsOfActivePrimaryWorkitem",
   "setTestStatus",
-  "setTaskStatus"
+  "setTaskStatus",
+  "markAsDevComplete"
 ]);
 
 module.exports.actions = actions;
@@ -53,6 +54,7 @@ module.exports.actionCreators = {
   setTaskStatus: createAction(actions.setTaskStatus),
   setTeamRooms: createAction(actions.setTeamRooms),
   setUsername: createAction(actions.setUsername),
+  markAsDevComplete: createAction(actions.markAsDevComplete),
   showDetailsOfActivePrimaryWorkitem: createAction(
     actions.showDetailsOfActivePrimaryWorkitem
   )

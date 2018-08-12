@@ -5,6 +5,7 @@ const {
   getAccessToken,
   getActiveWorkitem,
   getCurrentTeamRoom,
+  getDevCompleteStatus,
   getInDevelopingStatus,
   getMyself
 } = require("./selectors");
@@ -22,36 +23,43 @@ module.exports = [
       showDetailsOfActivePrimaryWorkitem
     ),
   () => takeEvery(actions.setTestStatus, persistUpdatedTestStatus),
-  () => takeEvery(actions.setTaskStatus, persistUpdatedTaskStatus)
+  () => takeEvery(actions.setTaskStatus, persistUpdatedTaskStatus),
+  () => takeEvery(actions.markAsDevComplete, persistMarkAsDevComplete),
+  () => takeEvery(actions.setCurrentTeamRoom, getTeamRoomStatuses)
 ];
 
+function* getTeamRoomStatuses({ payload: { teamRoom } }) {
+  const accessToken = yield select(getAccessToken);
+  const api = createV1Api(accessToken);
+
+  const storyStatuses = yield call(api.query, {
+    from: "StoryStatus",
+    select: ["AssetType", "Name", "RollupState"],
+    filter: ["Team=$Team;AssetState!='Closed'"],
+    with: {
+      $Team: teamRoom.team
+    }
+  });
+  const testStatuses = yield call(api.query, {
+    from: "TestStatus",
+    select: ["AssetType", "Description", "Name", "Order"],
+    filter: ["AssetState!='Closed'"]
+  });
+  const taskStatues = yield call(api.query, {
+    from: "TaskStatus",
+    select: ["AssetType", "Description", "Name", "Order"],
+    filter: ["AssetState!='Closed'"]
+  });
+  const statuses = storyStatuses.data[0]
+    .concat(testStatuses.data[0])
+    .concat(taskStatues.data[0]);
+  yield put(actionCreators.setStatuses({ statuses }));
+}
 function* startPrimaryWorkitem() {
   try {
     const teamRoom = yield select(getCurrentTeamRoom);
     const accessToken = yield select(getAccessToken);
     const api = createV1Api(accessToken);
-
-    const storyStatuses = yield call(api.query, {
-      from: "Status",
-      select: ["AssetType", "Description", "Name", "Order", "RollupState"],
-      where: {
-        "Team.Rooms": teamRoom._oid
-      }
-    });
-    const testStatuses = yield call(api.query, {
-      from: "TestStatus",
-      select: ["AssetType", "Description", "Name", "Order"],
-      filter: ["AssetState!='Closed'"]
-    });
-    const taskStatues = yield call(api.query, {
-      from: "TaskStatus",
-      select: ["AssetType", "Description", "Name", "Order"],
-      filter: ["AssetState!='Closed'"]
-    });
-    const statuses = storyStatuses.data[0]
-      .concat(testStatuses.data[0])
-      .concat(taskStatues.data[0]);
-    yield put(actionCreators.setStatuses({ statuses }));
 
     const pwis = yield call(api.query, {
       from: "PrimaryWorkitem",
@@ -78,6 +86,7 @@ function* startPrimaryWorkitem() {
         items: pwis.data[0]
       })
     );
+    console.log(pwis.data[0]);
     yield put(actionCreators.showPrimaryWorkitemSelector());
   } catch (e) {
     console.error(e);
@@ -185,28 +194,6 @@ function* showDetailsOfActivePrimaryWorkitem() {
     })
   );
 
-  const storyStatuses = yield call(api.query, {
-    from: "Status",
-    select: ["AssetType", "Description", "Name", "Order", "RollupState"],
-    where: {
-      ID: activePwi.status
-    }
-  });
-  const testStatuses = yield call(api.query, {
-    from: "TestStatus",
-    select: ["AssetType", "Description", "Name", "Order"],
-    filter: ["AssetState!='Closed'"]
-  });
-  const taskStatues = yield call(api.query, {
-    from: "TaskStatus",
-    select: ["AssetType", "Description", "Name", "Order"],
-    filter: ["AssetState!='Closed'"]
-  });
-  const statuses = storyStatuses.data[0]
-    .concat(testStatuses.data[0])
-    .concat(taskStatues.data[0]);
-  yield put(actionCreators.setStatuses({ statuses }));
-
   const pwiTests = yield call(api.query, {
     from: "Test",
     select: ["Name", "Description", "Status", "AssetType", "Number"],
@@ -242,6 +229,17 @@ function* persistUpdatedTaskStatus({ payload: { task, status } }) {
     yield persistAssetUpdate(
       task._oid,
       Object.assign({}, { Status: status._oid })
+    );
+  } catch (e) {
+    console.error(e);
+  }
+}
+function* persistMarkAsDevComplete({ payload }) {
+  try {
+    const devCompleteStatus = yield select(getDevCompleteStatus);
+    yield persistAssetUpdate(
+      payload._oid,
+      Object.assign({}, { Status: devCompleteStatus._oid })
     );
   } catch (e) {
     console.error(e);

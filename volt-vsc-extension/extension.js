@@ -18,8 +18,18 @@ let store;
 function activate(context) {
   const cache = new Cache(context, "volt");
   initialize({ context });
-
-  store = createStore(cache.get("state"));
+  const cacheState = cache.get("state");
+  const initialState = Object.assign({}, cacheState, {
+    v1: Object.assign({}, cacheState.v1, {
+      pwiDevelopingStatus: "StoryStatus:1151474",
+      pwiDevCompleteStatus: "StoryStatus:1151480",
+      testDevelopingStatus: "TestStatus:123733",
+      testReadyStatus: "TestStatus:103240",
+      taskDevelopingStatus: "TaskStatus:1023",
+      taskReadyStatus: "TaskStatus:1025"
+    })
+  });
+  store = createStore(initialState);
   store.subscribe(persistState({ cache, store }));
   store.subscribe(showingTeamRoomSelector(store));
   store.subscribe(showingPrimaryWorkitemSelector(store));
@@ -32,10 +42,10 @@ function activate(context) {
     })
   );
 
-  const initialState = store.getState();
-  console.log(initialState);
+  const startingState = store.getState();
+  console.log(startingState);
 
-  if (!getAccessToken(initialState)) {
+  if (!getAccessToken(startingState)) {
     window.showInformationMessage("Please setup the Volt extension.");
   }
 
@@ -81,6 +91,15 @@ function activate(context) {
     }
   );
   context.subscriptions.push(showDetailsOfActivePrimaryWorkitem);
+
+  const markAsDevComplete = commands.registerCommand(
+    "extension.markAsDevComplete",
+    function() {
+      const pwi = getActiveWorkitem(store.getState());
+      store.dispatch(actionCreators.markAsDevComplete(pwi));
+    }
+  );
+  context.subscriptions.push(markAsDevComplete);
 }
 exports.activate = activate;
 
@@ -112,7 +131,14 @@ function persistState({ cache, store }) {
           state.v1.primaryWorkitems && state.v1.activeWorkitem
             ? state.v1.primaryWorkitems[state.v1.activeWorkitem]
             : undefined
-      }
+      },
+      pwiDevelopingStatus: state.v1.pwiDevelopingStatus,
+      pwiDevCompleteStatus: state.v1.pwiDevCompleteStatus,
+      testDevelopingStatus: state.v1.testDevelopingStatus,
+      testReadyStatus: state.v1.testReadyStatus,
+      taskDevelopingStatus: state.v1.taskDevelopingStatus,
+      taskReadyStatus: state.v1.taskReadyStatus,
+      statuses: state.v1.statuses
     };
     cache.put("state", { v1: stateToSave });
   };

@@ -44,6 +44,10 @@
       {
         "command": "extension.showDetailsOfActivePrimaryWorkitem",
         "title": "volt: Show Asset Details"
+      },
+      {
+        "command": "extension.markAsDevComplete",
+        "title": "volt: Complete active Story"
       }
     ]
   },

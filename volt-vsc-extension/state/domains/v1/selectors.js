@@ -52,9 +52,17 @@ const getMyself = createSelector(
   [getMyselfOid, getMemberMap],
   (myselfOid, memberMap) => memberMap[myselfOid]
 );
+const getRelevantStatuses = createSelector([getRoot], root => ({
+  pwiDevelopingStatus: root.pwiDevelopingStatus,
+  pwiDevCompleteStatus: root.pwiDevCompleteStatus,
+  testDevelopingStatus: root.testDevelopingStatus,
+  testReadyStatus: root.testReadyStatus,
+  taskDevelopingStatus: root.taskDevelopingStatus,
+  taskReadyStatus: root.taskReadyStatus
+}));
 const getInDevelopingStatus = createSelector(
-  [getStatusMap],
-  statusMap => statusMap["StoryStatus:1151474"]
+  [getStatusMap, getRelevantStatuses],
+  (statusMap, { pwiDevelopingStatus }) => statusMap[pwiDevelopingStatus]
 );
 const getMyInProgressPrimaryWorkitems = createSelector(
   [getPrimaryWorkItemMap, getInDevelopingStatus, getMyself],
@@ -81,20 +89,24 @@ const getActiveWorkitem = createSelector(
   (pwiMap, currentPwi) => pwiMap[currentPwi]
 );
 const getTestReadyStatus = createSelector(
-  [getStatusMap],
-  statusMap => statusMap["TestStatus:103240"]
+  [getStatusMap, getRelevantStatuses],
+  (statusMap, { testReadyStatus }) => statusMap[testReadyStatus]
 );
 const getTestDevelopingStatus = createSelector(
-  [getStatusMap],
-  statusMap => statusMap["TestStatus:123733"]
+  [getStatusMap, getRelevantStatuses],
+  (statusMap, { testDevelopingStatus }) => statusMap[testDevelopingStatus]
 );
 const getTaskReadyStatus = createSelector(
-  [getStatusMap],
-  statusMap => statusMap["TaskStatus:1025"]
+  [getStatusMap, getRelevantStatuses],
+  (statusMap, { taskReadyStatus }) => statusMap[taskReadyStatus]
 );
 const getTaskDevelopingStatus = createSelector(
-  [getStatusMap],
-  statusMap => statusMap["TaskStatus:1023"]
+  [getStatusMap, getRelevantStatuses],
+  (statusMap, { taskDevelopingStatus }) => statusMap[taskDevelopingStatus]
+);
+const getDevCompleteStatus = createSelector(
+  [getStatusMap, getRelevantStatuses],
+  (statusMap, { pwiDevCompleteStatus }) => statusMap[pwiDevCompleteStatus]
 );
 const getTestMap = createSelector([getRoot], root => root.tests);
 const getTaskMap = createSelector([getRoot], root => root.tasks);
@@ -154,3 +166,4 @@ module.exports.getTestReadyStatus = getTestReadyStatus;
 module.exports.getTestDevelopingStatus = getTestDevelopingStatus;
 module.exports.getTaskReadyStatus = getTaskReadyStatus;
 module.exports.getTaskDevelopingStatus = getTaskDevelopingStatus;
+module.exports.getDevCompleteStatus = getDevCompleteStatus;
